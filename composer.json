@@ -1,5 +1,5 @@
 {
-    "name": "rusty-mc-fly/promotion-product",
+    "name": "rustymcfly/promotion-product",
     "description": "Promotion plugin",
     "type": "shopware-platform-plugin",
     "version": "1.0.0",
