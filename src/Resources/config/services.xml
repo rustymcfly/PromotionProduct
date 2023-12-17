@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="RustyMcFly\PromotionProduct\Content\ProductPromotion\SalesChannel\ProductPromotionRoute">
+            <argument type="service" id="product_promotion.repository"/>
+        </service>
+
+        <service id="RustyMcFly\PromotionProduct\Content\ProductPromotion\Admin\AdminFileRoute" public="true">
+            <argument type="service" id="RustyMcFly\PromotionProduct\Content\ProductPromotion\SalesChannel\ProductPromotionRoute"/>
+            <call method="setContainer"><argument id="service_container" type="service"/> </call>
+        </service>
+
+        <service id="RustyMcFly\PromotionProduct\Content\ProductPromotion\Storefront\ProductPromotionController" public="true">
+            <argument type="service" id="product_promotion_mapping.repository"/>
+            <argument type="service" id="RustyMcFly\PromotionProduct\Subscriber\PromotionProductLoadedSubscriber"/>
+
+            <call method="setContainer"><argument id="service_container" type="service"/> </call>
+            <call method="setTwig"><argument id="twig" type="service"/> </call>
+        </service>
+
+        <service id="RustyMcFly\PromotionProduct\Content\ProductPromotion\ProductPromotionDefinition">
+            <tag name="shopware.entity.definition" entity="product_promotion"/>
+        </service>
+        <service id="RustyMcFly\PromotionProduct\Content\ProductPromotionMapping\ProductPromotionMappingDefinition">
+            <tag name="shopware.entity.definition" entity="product_promotion_mapping"/>
+        </service>
+
+        <service id="RustyMcFly\PromotionProduct\Subscriber\PromotionProductLoadedSubscriber">
+            <tag name="kernel.event_subscriber"/>
+            <argument id="kernel" type="service"/>
+            <argument type="service" id="Shopware\Core\Checkout\Promotion\Util\PromotionCodeService"/>
+            <argument type="service" id="promotion_individual_code.repository"/>
+            <argument type="service" id="product_promotion.repository"/>
+            <argument type="service" id="product_promotion_mapping.repository"/>
+            <argument type="service" id="order_transaction.repository"/>
+        </service>
+    </services>
+</container>

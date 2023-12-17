@@ -1,0 +1,6 @@
+{% sw_extends "@Storefront/storefront/page/checkout/finish/index.html.twig" %}
+
+{% block page_checkout_finish_items %}
+    {{ parent() }}
+    {% sw_include "@Storefront/storefront/component/product_promotions_overview.html.twig" %}
+{% endblock %}

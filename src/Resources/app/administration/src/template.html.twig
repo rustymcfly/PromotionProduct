@@ -1,0 +1,6 @@
+{% block sw_product_detail_base_price_card %}
+    <sw-card position-identifier="top" v-if="productStates.includes('is-download')">
+        <product-promotions :product="product"/>
+    </sw-card>
+    {% parent %}
+{% endblock %}

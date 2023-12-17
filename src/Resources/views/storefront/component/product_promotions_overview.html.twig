@@ -1,0 +1,25 @@
+{% block product_promotions_overview %}
+    <div class="account-overview-card">
+        <div class="card">
+            <div class="card-body">
+                <div class="card-title">
+                    <h3>Meine Gutscheine</h3>
+                </div>
+                <p class="card-text">
+                    {% for productPromotionMapping in page.extensions.promotions %}
+                        {% if productPromotionMapping.promotionIndividualCode.payload is not defined %}
+                            <a href="{{ path('storefront.product-promotion.search', {"id": productPromotionMapping.id }) }}"
+                               download="{{ productPromotionMapping.productPromotion.product.translated.name }}.pdf">
+                                {{ productPromotionMapping.productPromotion.product.translated.name }}
+                                ({{ productPromotionMapping.promotionIndividualCode.code }})</a>
+                        {% else %}
+                            <s>{{ productPromotionMapping.productPromotion.product.translated.name }}
+                                ({{ productPromotionMapping.promotionIndividualCode.code }})</s>
+                        {% endif %}
+                        <br/>
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

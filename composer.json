@@ -1,0 +1,35 @@
+{
+    "name": "rusty-mc-fly/promotion-product",
+    "description": "Promotion plugin",
+    "type": "shopware-platform-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "shopware/core": "6.5.*",
+        "fpdf/fpdf": "^1"
+    },
+    "extra": {
+        "supportLink":  {
+            "de-DE": "mailto:hello@martin-flogaus.de",
+            "en-GB": "mailto:hello@martin-flogaus.de"
+        },
+        "manufacturerLink":  {
+            "de-DE": "https://martin-flogaus.de",
+            "en-GB": "https://martin-flogaus.de"
+        },
+        "shopware-plugin-class": "RustyMcFly\\PromotionProduct\\PromotionProduct",
+        "description": {
+            "en-GB": "",
+            "de-DE": ""
+        },
+        "label": {
+            "de-DE": "Product Promotion plugin",
+            "en-GB": "Product Promotion plugin"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "RustyMcFly\\PromotionProduct\\": "src/"
+        }
+    }
+}
