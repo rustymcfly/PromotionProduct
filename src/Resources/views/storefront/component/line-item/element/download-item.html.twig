@@ -3,7 +3,12 @@
 {% block component_line_item_download_item_detail %}
     {% set productPromotionMappings = page.extensions.promotions|filter(item => item.orderLineItemDownloadId == download.id  ) %}
     {% set productPromotionMapping = productPromotionMappings|first %}
-    {{ parent() }}
+    {% if not productPromotionMapping or not productPromotionMapping.promotionIndividualCode.payload %}
+        {{ parent() }}
+    {% else %}
+        Gutschein bereits eingelöst<br/>
+    {% endif %}
+
 {% endblock %}
 {% block component_line_item_download_item_detail_file_name %}
     {% if productPromotionMapping is defined %}
@@ -19,7 +24,7 @@
 {% endblock %}
 
 {% block component_line_item_download_item_detail_download_file_btn_icon %}
-    {% if productPromotionMapping is defined  %}
+    {% if productPromotionMapping is defined %}
         {% set downloadLink =  path('storefront.product-promotion.search', {"id": productPromotionMapping.id }) %}
     {% endif %}
     {{ parent() }}
