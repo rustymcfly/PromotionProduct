@@ -6,9 +6,7 @@ use RustyMcFly\PromotionProduct\Content\ProductPromotion\Attribute;
 use RustyMcFly\PromotionProduct\Content\ProductPromotion\Attributes;
 use RustyMcFly\PromotionProduct\Content\ProductPromotion\ProductPromotionCollection;
 use RustyMcFly\PromotionProduct\Content\ProductPromotion\ProductPromotionEntity;
-use RustyMcFly\PromotionProduct\Content\ProductPromotionMapping\ProductPromotionMappingDefinition;
 use setasign\Fpdi\Fpdi;
-use Shopware\Core\Checkout\Cart\Event\CheckoutOrderPlacedEvent;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
@@ -18,14 +16,13 @@ use Shopware\Core\Checkout\Promotion\Aggregate\PromotionIndividualCode\Promotion
 use Shopware\Core\Checkout\Promotion\Util\PromotionCodeService;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityLoadedEvent;
-use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Kernel;
 use Shopware\Core\System\StateMachine\Event\StateMachineStateChangeEvent;
-use Shopware\Storefront\Page\Account\Order\AccountOrderDetailPage;
 use Shopware\Storefront\Page\Account\Order\AccountOrderDetailPageLoadedEvent;
+use Shopware\Storefront\Page\Account\Order\AccountOrderPageLoadedEvent;
 use Shopware\Storefront\Page\Account\Overview\AccountOverviewPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Finish\CheckoutFinishPageLoadedEvent;
 use Shopware\Storefront\Page\PageLoadedEvent;
@@ -34,7 +31,7 @@ use Symfony\Component\HttpFoundation\File\File;
 
 class PromotionProductLoadedSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private readonly Kernel $kernel, private readonly PromotionCodeService $promotionCodeService, private readonly EntityRepository $individualCodeRepository, private readonly EntityRepository $productPromotionRepository, private readonly EntityRepository $productPromotionCustomersRepository, private readonly EntityRepository $orderTransactionRepository)
+    public function __construct(private readonly Kernel $kernel, private readonly PromotionCodeService $promotionCodeService, private readonly EntityRepository $individualCodeRepository, private readonly EntityRepository $productPromotionRepository, private readonly EntityRepository $productPromotionMappingRepository, private readonly EntityRepository $orderTransactionRepository)
     {
     }
 
@@ -45,10 +42,12 @@ class PromotionProductLoadedSubscriber implements EventSubscriberInterface
     {
         return [
             'product_promotion.loaded' => 'onPromotionLoaded',
+            'order.loaded' => 'onOrderLoaded',
             'state_machine.order_transaction.state_changed' => 'onTransactionUpdated',
             CheckoutFinishPageLoadedEvent::class => 'onPageLoaded',
             AccountOverviewPageLoadedEvent::class => 'onPageLoaded',
             AccountOrderDetailPageLoadedEvent::class => 'onPageLoaded',
+            AccountOrderPageLoadedEvent::class => 'onPageLoaded'
         ];
     }
 
@@ -56,13 +55,18 @@ class PromotionProductLoadedSubscriber implements EventSubscriberInterface
     {
 
         if ($event->getNextState()->getTechnicalName() === OrderTransactionStates::STATE_PAID && $event->getTransitionSide() === "state_enter") {
+
+            $mappings = [];
             /**
              * @var $order OrderEntity
              * @var $orderTransaction OrderTransactionEntity
              */
             $criteria = new Criteria([$event->getTransition()->getEntityId()]);
             $criteria->addAssociation('order');
+            $criteria->addAssociation('order.orderCustomer.customer');
+            $criteria->addAssociation('order.orderCustomer');
             $criteria->addAssociation('order.lineItems');
+            $criteria->addAssociation('order.lineItems.downloads');
             $orderTransaction = $this->orderTransactionRepository->search($criteria, $event->getContext())->first();
             $order = $orderTransaction->getOrder();
             $lineItems = $order->getLineItems()->filterByType(LineItem::PRODUCT_LINE_ITEM_TYPE);
@@ -82,8 +86,9 @@ class PromotionProductLoadedSubscriber implements EventSubscriberInterface
                     return $lineItem->getPayload()['productNumber'] === $productPromotionEntity->getProduct()->getProductNumber();
                 })->first();
                 $codes = $this->promotionCodeService->generateIndividualCodes($productPromotionEntity->getPromotion()->getIndividualCodePattern(), $promotionLineItem->getQuantity());
+
                 $discountCodes = [];
-                for ($i = 1; $i <= $promotionLineItem->getQuantity(); $i++) {
+                for ($i = 1; $i <= $promotionLineItem->getQuantity() * $promotionLineItem->getDownloads()->count(); $i++) {
                     $discountCodes[] = [
                         "promotionId" => $productPromotionEntity->getPromotionId(),
                         "scope" => "cart",
@@ -94,17 +99,22 @@ class PromotionProductLoadedSubscriber implements EventSubscriberInterface
                 }
 
                 $writeResult = $this->individualCodeRepository->upsert($discountCodes, $event->getContext());
-                $mappings = [];
+
 
                 foreach ($writeResult->getPrimaryKeys(PromotionIndividualCodeDefinition::ENTITY_NAME) as $id) {
-                    $mappings[] = [
-                        "promotionIndividualCodeId" => $id,
-                        "customerId" => $orderTransaction->getOrder()->getOrderCustomer()->getCustomerId(),
-                        "productPromotionId" => $productPromotionEntity->getId()
-                    ];
+
+                    foreach ($promotionLineItem->getDownloads() as $download) {
+                        $mappings[] = [
+                            "customerId" => $order->getOrderCustomer()->getCustomer()->getId(),
+                            "promotionIndividualCodeId" => $id,
+                            "orderLineItemDownloadId" => $download->getId(),
+                            "productPromotionId" => $productPromotionEntity->getId()
+                        ];
+                    }
                 }
-                $this->productPromotionCustomersRepository->upsert($mappings, $event->getContext());
             }
+
+            $this->productPromotionMappingRepository->upsert($mappings, $event->getContext());
         }
     }
 
@@ -117,7 +127,8 @@ class PromotionProductLoadedSubscriber implements EventSubscriberInterface
         $criteria->addAssociation('productPromotion.media');
         $criteria->addAssociation('productPromotion.product');
         $criteria->addAssociation('promotionIndividualCode');
-        $event->getPage()->addExtension('promotions', $this->productPromotionCustomersRepository->search($criteria, $event->getContext()));
+        $criteria->addAssociation('orderLineItemDownload');
+        $event->getPage()->addExtension('promotions', $this->productPromotionMappingRepository->search($criteria, $event->getContext()));
     }
 
     public function onPromotionLoaded(EntityLoadedEvent $entityLoadedEvent): void
@@ -132,17 +143,29 @@ class PromotionProductLoadedSubscriber implements EventSubscriberInterface
         }
     }
 
+    public function onOrderLoaded(EntityLoadedEvent $event)
+    {
+        $orderEntities = $event->getEntities();
+        $criteria = new Criteria();
+        $criteria->addAssociation('product');
+        $criteria->addAssociation('product');
+        foreach ($orderEntities as $orderEntity) {
+            $promotions = $this->productPromotionRepository->search($criteria, $event->getContext());
+        }
+    }
+
     public function getFile(ProductPromotionEntity $entity, string $code = null)
     {
         $fpdf = new Fpdi();
 
         $attributes = $entity->getAttributes();
 
-        if($code && $attributes->get('promotion.individualCodes.code')) {
+        if ($code && $attributes->get('promotion.individualCodes.code')) {
             $attributes->get('promotion.individualCodes.code')->value = $code;
         }
 
         $pdfTempPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $entity->getId();
+        if (!$entity->getMedia()->getPath()) return;
 
         $fpdf->setSourceFile($this->kernel->getProjectDir() . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR . $entity->getMedia()->getPath());
 

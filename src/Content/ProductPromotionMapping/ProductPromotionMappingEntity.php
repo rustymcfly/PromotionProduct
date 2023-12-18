@@ -13,6 +13,8 @@ class ProductPromotionMappingEntity extends Entity
 
     protected $customer;
     protected $customerId;
+    protected $orderLineItemDownloadId;
+    protected $orderLineItemDownload;
     protected $promotionIndividualCode;
     protected $promotionIndividualCodeId;
     protected $productPromotion;
@@ -49,6 +51,7 @@ class ProductPromotionMappingEntity extends Entity
     {
         $this->customerId = $customerId;
     }
+
 
     /**
      * @return mixed
@@ -112,6 +115,38 @@ class ProductPromotionMappingEntity extends Entity
     public function setProductPromotionId($productPromotionId): void
     {
         $this->productPromotionId = $productPromotionId;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOrderLineItemDownload()
+    {
+        return $this->orderLineItemDownload;
+    }
+
+    /**
+     * @param mixed $orderLineItemDownload
+     */
+    public function setOrderLineItemDownload($orderLineItemDownload): void
+    {
+        $this->orderLineItemDownload = $orderLineItemDownload;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOrderLineItemDownloadId()
+    {
+        return $this->orderLineItemDownloadId;
+    }
+
+    /**
+     * @param mixed $orderLineItemDownloadId
+     */
+    public function setOrderLineItemDownloadId($orderLineItemDownloadId): void
+    {
+        $this->orderLineItemDownloadId = $orderLineItemDownloadId;
     }
 
 }

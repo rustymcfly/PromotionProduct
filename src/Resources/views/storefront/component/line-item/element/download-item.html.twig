@@ -1,11 +1,9 @@
 {% sw_extends "@Storefront/storefront/component/line-item/element/download-item.html.twig" %}
 
 {% block component_line_item_download_item_detail %}
-    {% set productPromotionMappings = page.extensions.promotions|filter(item => item.productPromotion.mediaId == download.mediaId) %}
+    {% set productPromotionMappings = page.extensions.promotions|filter(item => item.orderLineItemDownloadId == download.id  ) %}
     {% set productPromotionMapping = productPromotionMappings|first %}
-    {{ dump(productPromotionMapping.productPromotion.mediaId, download.mediaId) }}
     {{ parent() }}
-
 {% endblock %}
 {% block component_line_item_download_item_detail_file_name %}
     {% if productPromotionMapping is defined %}

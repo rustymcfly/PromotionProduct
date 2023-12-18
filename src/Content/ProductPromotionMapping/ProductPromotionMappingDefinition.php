@@ -4,6 +4,8 @@ namespace RustyMcFly\PromotionProduct\Content\ProductPromotionMapping;
 
 use RustyMcFly\PromotionProduct\Content\ProductPromotion\ProductPromotionDefinition;
 use Shopware\Core\Checkout\Customer\CustomerDefinition;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItemDownload\OrderLineItemDownloadDefinition;
+use Shopware\Core\Checkout\Order\OrderDefinition;
 use Shopware\Core\Checkout\Promotion\Aggregate\PromotionIndividualCode\PromotionIndividualCodeDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\FkField;
@@ -38,9 +40,11 @@ class ProductPromotionMappingDefinition extends EntityDefinition
         return new FieldCollection([
             (new IdField('id', 'id'))->addFlags(new PrimaryKey(), new Required()),
             (new FkField('customer_id', 'customerId', CustomerDefinition::class))->addFlags(new PrimaryKey(), new Required()),
+            (new FkField('order_line_item_download_id', 'orderLineItemDownloadId', OrderLineItemDownloadDefinition::class))->addFlags(new PrimaryKey(), new Required()),
             (new FkField('product_promotion_id', 'productPromotionId', ProductPromotionDefinition::class))->addFlags(new PrimaryKey(), new Required()),
             (new FkField('promotion_individual_code_id', 'promotionIndividualCodeId', PromotionIndividualCodeDefinition::class))->addFlags(new PrimaryKey(), new Required()),
             new ManyToOneAssociationField('customer', 'customer_id', CustomerDefinition::class),
+            new ManyToOneAssociationField('orderLineItemDownload', 'order_line_item_download_id', OrderLineItemDownloadDefinition::class),
             new ManyToOneAssociationField('productPromotion', 'product_promotion_id', ProductPromotionDefinition::class),
             new ManyToOneAssociationField('promotionIndividualCode', 'promotion_individual_code_id', PromotionIndividualCodeDefinition::class)
         ]);
