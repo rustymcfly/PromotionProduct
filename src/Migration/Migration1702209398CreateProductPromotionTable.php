@@ -36,9 +36,11 @@ CREATE TABLE IF NOT EXISTS product_promotion_mapping
     product_promotion_id         binary(16)  NOT NULL,
     order_line_item_download_id  binary(16)  NOT NULL,
     promotion_individual_code_id binary(16)  NOT NULL,
+    customer_id binary(16) not null,
     created_at                   DATETIME(3) NOT NULL,
     updated_at                   DATETIME(3),
-    primary key (id, order_line_item_download_id, product_promotion_id, promotion_individual_code_id),
+    primary key (id, customer_id, order_line_item_download_id, product_promotion_id, promotion_individual_code_id),
+    constraint `fk.product-promotion-customers.customer_id` FOREIGN KEY (customer_id) REFERENCES customer (id) ON DELETE CASCADE ON UPDATE CASCADE,
     constraint `fk.product-promotion-customers.product_promotion_id` FOREIGN KEY (product_promotion_id) REFERENCES product_promotion (id) ON DELETE CASCADE ON UPDATE CASCADE,
     constraint `fk.product-promotion-customers.order_line_item_download_id` FOREIGN KEY (order_line_item_download_id) REFERENCES order_line_item_download (id) ON DELETE CASCADE ON UPDATE CASCADE,
     constraint `fk.product-promotion-customers.promotion_individual_code_id` FOREIGN KEY (promotion_individual_code_id) REFERENCES promotion_individual_code (id) ON DELETE CASCADE ON UPDATE CASCADE
