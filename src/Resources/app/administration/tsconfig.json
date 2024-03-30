@@ -1,45 +1,40 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "target": "esnext",
+    "module": "es2022",
     "importHelpers": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "outDir": "../../../public/administration",
-    "resolveJsonModule": true,
+    "outDir": "../../public/administration/js",
     "noImplicitAny": false,
-    "target": "es2020",
-    "lib": [
-      "ES2020",
-      "DOM"
-    ],
     "allowJs": true,
-    "sourceMap": true,
-    "moduleResolution": "Node",
     "baseUrl": ".",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "types": [
+      "node",
+      "webpack-env",
+      "jest"
+    ],
     "paths": {
-      "vue-router/*": [
-        "../../../../../../../vendor/shopware/administration/Resources/app/administration/node_modules/vue-router/*"
+      "@vue/*": [
+        "../../../../../../../vendor/shopware/administration/Resources/app/administration/node_modules/@vue/*"
       ],
-      "ConfyAdmin/*": [
-        "./src/*"
-      ],
-      "Shopware/*": [
-        "../../../../../../../vendor/shopware/administration/Resources/app/administration/src/*"
+      "flush-promises/*": [
+        "./node_modules/flush-promises/*"
       ]
     }
   },
+  "stats": {
+    "errorDetails": true
+  },
   "files": [
-    "./src/shims.d.ts",
     "../../../../../../../vendor/shopware/administration/Resources/app/administration/src/global.types.ts",
     "../../../../../../../vendor/shopware/administration/Resources/app/administration/src/html-shim.d.ts"
   ],
   "include": [
-    "./**/*.ts",
-    "./**/*.vue",
-    "./**/*.html.twig"
-  ],
-  "exclude": [
-    "node_modules"
+    "./**/*.ts"
   ]
 }

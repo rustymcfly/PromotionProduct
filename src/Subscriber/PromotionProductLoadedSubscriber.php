@@ -16,9 +16,11 @@ use Shopware\Core\Checkout\Promotion\Aggregate\PromotionIndividualCode\Promotion
 use Shopware\Core\Checkout\Promotion\Util\PromotionCodeService;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityLoadedEvent;
+use Shopware\Core\Framework\DataAbstractionLayer\Pricing\PriceCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\Struct\Collection;
 use Shopware\Core\Kernel;
 use Shopware\Core\System\StateMachine\Event\StateMachineStateChangeEvent;
 use Shopware\Storefront\Page\Account\Order\AccountOrderDetailPageLoadedEvent;
@@ -180,13 +182,20 @@ class PromotionProductLoadedSubscriber implements EventSubscriberInterface
         $fpdf->SetTextColor(10, 19, 21);
 
         $mid_x = $fpdf->GetPageWidth() / 2;;
+        try {
 
-        foreach ($attributes as $key => $attribute) {
-            if (!in_array($key, ["fontSize", "font"]) && $attribute instanceof Attribute) {
-                $text = $attribute->value ?? $attribute->property ?? 'undefined';
-                $x = $attribute->x === 'center' ? $mid_x - ($fpdf->GetStringWidth($text) / 2) - 5 : ($attribute->x === 'left' ? 25 : $fpdf->GetPageWidth() - $fpdf->GetStringWidth($text) - 25);
-                $fpdf->Text($x, $attribute->y ?? 30, iconv('UTF-8', 'windows-1252', $text));
+            foreach ($attributes as $key => $attribute) {
+                if (!in_array($key, ["fontSize", "font"]) && $attribute instanceof Attribute) {
+                    $text = $attribute->value ?? $attribute->property ?? 'undefined';
+                    if($attribute instanceof PriceCollection) {
+                        $text = $attribute->first()->getGross();
+                    }
+                    $x = $attribute->x === 'center' ? $mid_x - ($fpdf->GetStringWidth($text) / 2) - 5 : ($attribute->x === 'left' ? 25 : $fpdf->GetPageWidth() - $fpdf->GetStringWidth($text) - 25);
+                    $fpdf->Text($x, $attribute->y ?? 30, iconv('UTF-8', 'windows-1252', $text));
+                }
             }
+        } catch (\Throwable $exception) {
+            $this->kernel->getContainer()->get('monolog.logger.business_events')->error($exception->getMessage(), (array)$exception);
         }
         if (file_exists($pdfTempPath))
             unlink($pdfTempPath);

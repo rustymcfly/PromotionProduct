@@ -7,21 +7,20 @@
                 <sw-promotion-v2-sales-channel-select
                         :promotion="download.promotion"
                         @change="updateAttributes(download)"
-                        :entity-collection="download.promotion.salesChannels"
-                />
+                        :entity-collection="download.promotion.salesChannels"></sw-promotion-v2-sales-channel-select>
                 <sw-field v-model="download.promotion.individualCodePattern" label="Individual Code Pattern"
-                                 @change="updateAttributes(download)"/>
+                          @change="updateAttributes(download)"></sw-field>
                 <div v-for="(attribute, index) in download.attributes"
                      style="border-bottom: 1px solid; margin-bottom: 1rem">
                     <div>
                         <div style="display:flex; justify-content: end;"><span
                                     @click="download.attributes.splice(index, 1)">&times</span></div>
                         <sw-select-field v-model="attribute.property" label="Property" :options="propertyOptions"
-                                         @change="updateAttributes(download)"/>
+                                         @change="updateAttributes(download)"></sw-select-field>
                         <sw-field v-model="attribute.y" label="Position Y (mm)"
-                                  @change="updateAttributes(download)"/>
+                                  @change="updateAttributes(download)"></sw-field>
                         <sw-select-field v-model="attribute.x" label="Position X" :options="xOptions"
-                                         @change="updateAttributes(download)"/>
+                                         @change="updateAttributes(download)"></sw-select-field>
                     </div>
                 </div>
             </div>
@@ -29,7 +28,7 @@
         </div>
         <div style="width: 100%">
             <iframe :src="download.content" :ref="download.id"
-                    style="height: calc(6rem + 297mm); width: 210mm; object-fit: contain"/>
+                    style="height: calc(6rem + 297mm); width: 210mm; object-fit: contain"></iframe>
         </div>
     </div>
 </div>
