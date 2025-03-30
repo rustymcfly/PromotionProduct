@@ -1,7 +1,4 @@
 import productPromotionTemplate from "./template.html.twig";
-import {
-    Property
-} from "../../../../../../../../../vendor/shopware/administration/Resources/app/administration/src/core/data/entity-definition.data";
 
 export default {
     template: productPromotionTemplate,
