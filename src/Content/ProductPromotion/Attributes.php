@@ -26,7 +26,7 @@ class Attributes extends Collection
      * @param ProductPromotionEntity $entity
      * @return Attributes
      */
-    public static function createFrom(Struct $entity): Attributes
+    public static function createFrom(Struct $entity): static
     {
         $struct = new self();
         $propertyAccessor = new PropertyAccessor(PropertyAccessor::MAGIC_GET | PropertyAccessor::MAGIC_CALL, PropertyAccessor::DO_NOT_THROW);
